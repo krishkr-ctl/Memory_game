@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
     <title>Memory Game - Two Players</title>
     <style>
       :root {
@@ -15,34 +15,49 @@
         --success: #38d39f;
       }
 
-      * { box-sizing: border-box; }
+      * { 
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
 
       body {
-        margin: 0;
         min-height: 100vh;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, Helvetica, sans-serif;
         background: linear-gradient(135deg, var(--bg), #16263d);
         color: var(--text);
         display: grid;
         place-items: center;
-        padding: 20px;
+        padding: 12px;
+        overflow-x: hidden;
       }
 
       .game-box {
-        width: min(100%, 760px);
+        width: 100%;
+        max-width: 760px;
         background: rgba(16, 35, 59, 0.95);
-        border-radius: 24px;
-        padding: 24px;
+        border-radius: 20px;
+        padding: 16px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
       }
+
       .top-link {
         display: flex;
-        justify-content: flex-end;
+        justify-content: center;
         gap: 8px;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
         color: var(--muted);
         font-weight: 700;
+        font-size: 0.85rem;
       }
+
       .top-link a {
         color: var(--text);
         background: rgba(255,255,255,0.04);
@@ -53,56 +68,73 @@
       }
 
       h1 {
-        margin: 0 0 8px;
+        margin: 0 0 4px;
         text-align: center;
-        font-size: 2rem;
+        font-size: clamp(1.5rem, 5vw, 2rem);
       }
 
       .subtitle {
         text-align: center;
         color: var(--muted);
-        margin: 0 0 18px;
+        margin: 0 0 12px;
+        font-size: clamp(0.9rem, 3vw, 1rem);
       }
 
       .scoreboard {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
       }
 
       .score {
-        flex: 1;
-        min-width: 160px;
         background: rgba(255,255,255,0.06);
-        padding: 12px 14px;
+        padding: 12px;
         border-radius: 14px;
         text-align: center;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
       }
 
       .score.active {
         border: 2px solid var(--accent);
+        background: rgba(77, 208, 225, 0.1);
       }
 
-      .score strong { display: block; font-size: 1.2rem; }
+      .score strong { 
+        display: block; 
+        font-size: clamp(1rem, 3vw, 1.1rem);
+        margin-bottom: 4px;
+      }
+
+      .score span {
+        font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+      }
 
       .controls {
         display: flex;
         justify-content: center;
         gap: 10px;
-        margin-bottom: 18px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
       }
 
       button {
         border: none;
         border-radius: 12px;
-        padding: 10px 14px;
+        padding: 10px 16px;
         font: inherit;
         cursor: pointer;
         font-weight: 700;
         color: white;
         background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+      }
+
+      button:active {
+        transform: scale(0.95);
       }
 
       button.secondary {
@@ -111,23 +143,35 @@
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 8px;
+        width: 100%;
       }
 
       .card {
         aspect-ratio: 1 / 1;
         border: none;
-        border-radius: 16px;
+        border-radius: 14px;
         background: linear-gradient(135deg, var(--panel), #18324e);
         color: var(--text);
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 5vw, 1.8rem);
         font-weight: 700;
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-        transition: transform 0.2s ease, background 0.2s ease;
+        transition: transform 0.15s ease, background 0.15s ease;
+        cursor: pointer;
+        padding: 0;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
       }
 
-      .card:hover { transform: translateY(-2px); }
+      .card:hover:not(.matched) { 
+        transform: translateY(-2px);
+      }
+
+      .card:active:not(.matched) {
+        transform: scale(0.95);
+      }
 
       .card.flipped, .card.matched {
         background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -139,10 +183,11 @@
 
       .message {
         text-align: center;
-        margin-top: 14px;
+        margin-top: 10px;
         min-height: 24px;
         color: var(--muted);
         font-weight: 700;
+        font-size: clamp(0.85rem, 2.5vw, 0.95rem);
       }
 
       .winner-overlay {
@@ -153,6 +198,7 @@
         align-items: center;
         justify-content: center;
         z-index: 10;
+        padding: 16px;
       }
 
       .winner-overlay.show {
@@ -163,21 +209,22 @@
       .winner-box {
         background: linear-gradient(135deg, var(--accent), var(--accent-2));
         color: white;
-        padding: 24px 28px;
+        padding: clamp(20px, 8vw, 28px);
         border-radius: 20px;
         text-align: center;
         box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
         animation: popIn 0.4s ease;
+        max-width: 100%;
       }
 
       .winner-box h2 {
         margin: 0 0 8px;
-        font-size: 1.8rem;
+        font-size: clamp(1.5rem, 5vw, 1.8rem);
       }
 
       .winner-box p {
-        margin: 0;
-        font-size: 1.05rem;
+        margin: 0 0 12px;
+        font-size: clamp(0.9rem, 3vw, 1.05rem);
       }
 
       @keyframes fadeIn {
@@ -190,10 +237,32 @@
         to { transform: scale(1); opacity: 1; }
       }
 
-      @media (max-width: 560px) {
-        .game-box { padding: 16px; }
-        .grid { grid-template-columns: repeat(2, 1fr); }
-        .card { font-size: 1.2rem; }
+      /* Tablet view */
+      @media (min-width: 481px) {
+        .grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      /* Landscape orientation */
+      @media (max-height: 500px) {
+        body { padding: 8px; }
+        .game-box { padding: 12px; }
+        h1 { margin-bottom: 2px; }
+        .subtitle { margin-bottom: 8px; }
+        .scoreboard { margin-bottom: 8px; gap: 8px; }
+        .controls { margin-bottom: 8px; gap: 8px; }
+        .message { margin-top: 8px; }
+      }
+
+      /* Safe area for notched devices */
+      @supports (padding: max(0px)) {
+        body {
+          padding-top: max(12px, env(safe-area-inset-top));
+          padding-bottom: max(12px, env(safe-area-inset-bottom));
+          padding-left: max(12px, env(safe-area-inset-left));
+          padding-right: max(12px, env(safe-area-inset-right));
+        }
       }
     </style>
   </head>
@@ -202,16 +271,16 @@
       <div class="winner-box">
         <h2 id="winner-title">Winner!</h2>
         <p id="winner-text">Player 1 wins the game!</p>
-        <button id="overlay-restart-btn" style="margin-top: 14px;">Restart Game</button>
+        <button id="overlay-restart-btn">Restart Game</button>
       </div>
     </div>
 
     <div class="game-box">
       <div class="top-link">
-        <a href="https://github.com/krishkr-ctl" target="_blank" rel="noopener noreferrer">Owner: Krish kumar prajapati</a>
+        <a href="https://github.com/krishkr-ctl" target="_blank" rel="noopener noreferrer">👨‍💻 Krish Kumar</a>
       </div>
-      <h1>Memory Match</h1>
-      <p class="subtitle">Two players take turns finding matching cards.</p>
+      <h1>🎮 Memory Match</h1>
+      <p class="subtitle">Find matching pairs!</p>
 
       <div class="scoreboard">
         <div class="score active" id="player1-score">
@@ -225,7 +294,7 @@
       </div>
 
       <div class="controls">
-        <button id="restart-btn">Restart Game</button>
+        <button id="restart-btn">🔄 Restart</button>
       </div>
 
       <div class="grid" id="board"></div>
@@ -251,6 +320,7 @@
       let currentPlayer = 1;
       let scores = { 1: 0, 2: 0 };
       let lockBoard = false;
+      let gameState = 'playing';
 
       function shuffle(array) {
         const copy = [...array];
@@ -269,6 +339,7 @@
         lockBoard = false;
         currentPlayer = 1;
         scores = { 1: 0, 2: 0 };
+        gameState = 'playing';
         updateScoreboard();
         message.textContent = 'Player 1 starts.';
         winnerOverlay.classList.remove('show');
@@ -278,7 +349,7 @@
           button.className = 'card';
           button.dataset.index = index;
           button.dataset.emoji = emoji;
-          button.innerHTML = '?';
+          button.textContent = '?';
           button.addEventListener('click', () => handleCardClick(index));
           board.appendChild(button);
         });
@@ -293,7 +364,11 @@
 
       function handleCardClick(index) {
         const card = board.children[index];
-        if (lockBoard || matched.includes(index) || flipped.includes(index)) return;
+        
+        // Prevent actions during game over or if card is already processed
+        if (gameState !== 'playing' || lockBoard || matched.includes(index) || flipped.includes(index)) {
+          return;
+        }
 
         card.textContent = card.dataset.emoji;
         card.classList.add('flipped');
@@ -306,30 +381,36 @@
           const secondCard = board.children[secondIndex];
 
           if (firstCard.dataset.emoji === secondCard.dataset.emoji) {
+            // Match found
             matched.push(firstIndex, secondIndex);
             firstCard.classList.add('matched');
             secondCard.classList.add('matched');
             scores[currentPlayer] += 1;
             updateScoreboard();
-            message.textContent = `Player ${currentPlayer} found a match!`;
+            message.textContent = `🎯 Player ${currentPlayer} found a match!`;
             flipped = [];
             lockBoard = false;
 
+            // Check for game over
             if (matched.length === shuffled.length) {
+              gameState = 'over';
+              let winner;
               if (scores[1] > scores[2]) {
-                winnerTitle.textContent = '🎉 Player 1 Wins!';
+                winner = '🎉 Player 1 Wins!';
                 winnerText.textContent = `Player 1 finished with ${scores[1]} pairs.`;
               } else if (scores[2] > scores[1]) {
-                winnerTitle.textContent = '🎉 Player 2 Wins!';
+                winner = '🎉 Player 2 Wins!';
                 winnerText.textContent = `Player 2 finished with ${scores[2]} pairs.`;
               } else {
-                winnerTitle.textContent = '🤝 It\'s a Draw!';
+                winner = '🤝 It\'s a Draw!';
                 winnerText.textContent = 'Both players finished with the same score.';
               }
-              winnerOverlay.classList.add('show');
-              message.textContent = winnerTitle.textContent;
+              winnerTitle.textContent = winner;
+              setTimeout(() => winnerOverlay.classList.add('show'), 300);
+              message.textContent = winner;
             }
           } else {
+            // No match
             setTimeout(() => {
               firstCard.textContent = '?';
               secondCard.textContent = '?';
@@ -340,7 +421,7 @@
               message.textContent = `Player ${currentPlayer}'s turn.`;
               flipped = [];
               lockBoard = false;
-            }, 800);
+            }, 600);
           }
         }
       }
@@ -349,6 +430,18 @@
 
       restartBtn.addEventListener('click', startNewGame);
       overlayRestartBtn.addEventListener('click', startNewGame);
+
+      // Prevent zooming on double tap
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function(event) {
+        let now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+
+      // Start game
       buildBoard();
     </script>
   </body>
