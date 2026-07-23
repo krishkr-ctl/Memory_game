@@ -3,26 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-    <title>Memory Game by Krish — Two Player Memory Match</title>
+    <title>Memory Game by Krish — Memory Match with AI</title>
 
     <!-- Primary SEO -->
-    <meta name="description" content="Play Memory Match — a fun two-player memory card game by Krish. Find matching pairs, compete with a friend, and enjoy a lightweight, mobile-friendly HTML game." />
-    <meta name="keywords" content="Memory Game, memory match, two player game, Krish, Krish Kumar, matching pairs, HTML game, mobile game, browser game" />
+    <meta name="description" content="Play Memory Match — a fun memory card game by Krish. Play against a friend or challenge the AI. Find matching pairs in this lightweight, mobile-friendly HTML game." />
+    <meta name="keywords" content="Memory Game, memory match, AI game, two player game, Krish, Krish Kumar, matching pairs, HTML game, mobile game, browser game" />
     <meta name="author" content="Krish Kumar (krishkr-ctl)" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#07111f" />
 
     <!-- Social / Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Memory Game by Krish — Two Player Memory Match" />
-    <meta property="og:description" content="Play Memory Match — a fun two-player memory card game by Krish. Find matching pairs and challenge your friends." />
+    <meta property="og:title" content="Memory Game by Krish — Memory Match with AI" />
+    <meta property="og:description" content="Play Memory Match — a fun memory card game by Krish. Play against a friend or challenge the AI." />
     <meta property="og:url" content="https://github.com/krishkr-ctl/Memory_game" />
     <meta property="og:site_name" content="Memory Game by Krish" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Memory Game by Krish — Two Player Memory Match" />
-    <meta name="twitter:description" content="Play Memory Match — a fun two-player memory card game by Krish. Find matching pairs and challenge your friends." />
+    <meta name="twitter:title" content="Memory Game by Krish — Memory Match with AI" />
+    <meta name="twitter:description" content="Play Memory Match — a fun memory card game by Krish. Challenge the AI or play with friends." />
 
     <!-- Canonical (points to the repo page; update if you host this on a dedicated domain) -->
     <link rel="canonical" href="https://github.com/krishkr-ctl/Memory_game" />
@@ -39,7 +39,7 @@
         "name": "Krish Kumar",
         "url": "https://github.com/krishkr-ctl"
       },
-      "description": "A lightweight two-player memory card game built with HTML and JavaScript. Find matching pairs and compete with friends.",
+      "description": "A lightweight memory card game built with HTML and JavaScript. Play against an AI or with a friend. Find matching pairs and compete.",
       "applicationCategory": "Game",
       "url": "https://github.com/krishkr-ctl/Memory_game"
     }
@@ -121,6 +121,34 @@
         font-size: clamp(0.9rem, 3vw, 1rem);
       }
 
+      .mode-selector {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+
+      .mode-btn {
+        border: 2px solid transparent;
+        border-radius: 12px;
+        padding: 8px 14px;
+        font: inherit;
+        cursor: pointer;
+        font-weight: 700;
+        color: var(--muted);
+        background: rgba(255,255,255,0.04);
+        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+        transition: all 0.3s ease;
+        user-select: none;
+      }
+
+      .mode-btn.active {
+        color: white;
+        border: 2px solid var(--accent);
+        background: rgba(77, 208, 225, 0.1);
+      }
+
       .scoreboard {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -150,6 +178,10 @@
 
       .score span {
         font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+      }
+
+      .score.ai strong::after {
+        content: ' 🤖';
       }
 
       .controls {
@@ -220,6 +252,11 @@
 
       .card.matched {
         box-shadow: 0 0 0 2px var(--success);
+      }
+
+      .card.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
       }
 
       .message {
@@ -362,6 +399,7 @@
         .game-box { padding: 12px; }
         h1 { margin-bottom: 2px; }
         .subtitle { margin-bottom: 8px; }
+        .mode-selector { margin-bottom: 8px; gap: 6px; }
         .scoreboard { margin-bottom: 8px; gap: 8px; }
         .controls { margin-bottom: 8px; gap: 8px; }
         .message { margin-top: 8px; }
@@ -383,13 +421,14 @@
       <div class="winner-box">
         <h2 id="winner-title">Winner!</h2>
         <p id="winner-text">Player 1 wins the game!</p>
-        <button id="overlay-restart-btn">Restart Game</button>
+        <button id="overlay-restart-btn">Play Again</button>
       </div>
     </div>
 
     <div class="help-overlay" id="help-overlay">
       <div class="help-modal">
         <h2>📖 How to Play</h2>
+        <h3 style="color: var(--accent); margin-top: 16px;">Two Player Mode</h3>
         <ol>
           <li><strong>Take Turns:</strong> Players alternate turns. Player 1 starts first.</li>
           <li><strong>Flip Cards:</strong> Click on any card to reveal the emoji hidden behind it.</li>
@@ -398,6 +437,15 @@
           <li><strong>Pass Your Turn:</strong> If the cards don't match, both cards flip back and it becomes your opponent's turn.</li>
           <li><strong>Win the Game:</strong> The player with the most matched pairs when all cards are revealed wins!</li>
         </ol>
+
+        <h3 style="color: var(--accent); margin-top: 16px;">AI Mode</h3>
+        <ol>
+          <li><strong>Challenge the AI:</strong> Play against a smart AI opponent with memory and strategic thinking.</li>
+          <li><strong>Your Turn:</strong> Click cards to make matches and score points.</li>
+          <li><strong>AI's Turn:</strong> Watch as the AI plays smartly, remembering card positions!</li>
+          <li><strong>Difficulty:</strong> The AI gets smarter as more cards are revealed.</li>
+        </ol>
+
         <p><strong>💡 Tip:</strong> Remember the card positions to make better matches on your next turn!</p>
         <div class="help-modal-buttons">
           <button id="close-help-btn">Got It!</button>
@@ -410,7 +458,12 @@
         <a href="https://github.com/krishkr-ctl" target="_blank" rel="noopener noreferrer">👨‍💻 Krish Kumar</a>
       </div>
       <h1>🎮 Memory Match — Memory Game by Krish</h1>
-      <p class="subtitle">Find matching pairs! Two-player mode — great for friends and family.</p>
+      <p class="subtitle">Find matching pairs! Play with friends or challenge the AI.</p>
+
+      <div class="mode-selector">
+        <button class="mode-btn active" id="mode-2player">👥 2 Players</button>
+        <button class="mode-btn" id="mode-ai">🤖 Play AI</button>
+      </div>
 
       <div class="scoreboard">
         <div class="score active" id="player1-score">
@@ -447,6 +500,8 @@
       const winnerOverlay = document.getElementById('winner-overlay');
       const winnerTitle = document.getElementById('winner-title');
       const winnerText = document.getElementById('winner-text');
+      const mode2playerBtn = document.getElementById('mode-2player');
+      const modeAIBtn = document.getElementById('mode-ai');
 
       let shuffled = [];
       let flipped = [];
@@ -455,6 +510,8 @@
       let scores = { 1: 0, 2: 0 };
       let lockBoard = false;
       let gameState = 'playing';
+      let gameMode = '2player'; // '2player' or 'ai'
+      let aiMemory = {}; // AI's memory of card positions
 
       function shuffle(array) {
         const copy = [...array];
@@ -474,8 +531,10 @@
         currentPlayer = 1;
         scores = { 1: 0, 2: 0 };
         gameState = 'playing';
+        aiMemory = {};
         updateScoreboard();
-        message.textContent = 'Player 1 starts.';
+        updateModeUI();
+        message.textContent = gameMode === 'ai' ? 'Your turn. Find a match!' : 'Player 1 starts.';
         winnerOverlay.classList.remove('show');
 
         shuffled.forEach((emoji, index) => {
@@ -496,6 +555,16 @@
         player2Score.classList.toggle('active', currentPlayer === 2);
       }
 
+      function updateModeUI() {
+        if (gameMode === 'ai') {
+          player2Score.classList.add('ai');
+          player2Score.querySelector('strong').textContent = 'AI';
+        } else {
+          player2Score.classList.remove('ai');
+          player2Score.querySelector('strong').textContent = 'Player 2';
+        }
+      }
+
       function handleCardClick(index) {
         const card = board.children[index];
         
@@ -504,9 +573,12 @@
           return;
         }
 
-        card.textContent = card.dataset.emoji;
-        card.classList.add('flipped');
-        flipped.push(index);
+        // In AI mode, only allow player 1 to click
+        if (gameMode === 'ai' && currentPlayer !== 1) {
+          return;
+        }
+
+        revealCard(index);
 
         if (flipped.length === 2) {
           lockBoard = true;
@@ -521,27 +593,16 @@
             secondCard.classList.add('matched');
             scores[currentPlayer] += 1;
             updateScoreboard();
-            message.textContent = `🎯 Player ${currentPlayer} found a match!`;
+            message.textContent = `🎯 ${gameMode === 'ai' ? 'You' : `Player ${currentPlayer}`} found a match!`;
             flipped = [];
             lockBoard = false;
 
             // Check for game over
             if (matched.length === shuffled.length) {
-              gameState = 'over';
-              let winner;
-              if (scores[1] > scores[2]) {
-                winner = '🎉 Player 1 Wins!';
-                winnerText.textContent = `Player 1 finished with ${scores[1]} pairs.`;
-              } else if (scores[2] > scores[1]) {
-                winner = '🎉 Player 2 Wins!';
-                winnerText.textContent = `Player 2 finished with ${scores[2]} pairs.`;
-              } else {
-                winner = '🤝 It\'s a Draw!';
-                winnerText.textContent = 'Both players finished with the same score.';
-              }
-              winnerTitle.textContent = winner;
-              setTimeout(() => winnerOverlay.classList.add('show'), 300);
-              message.textContent = winner;
+              endGame();
+            } else if (gameMode === 'ai' && currentPlayer === 2) {
+              // AI found a match, let it play again
+              setTimeout(() => aiTurn(), 800);
             }
           } else {
             // No match
@@ -552,13 +613,159 @@
               secondCard.classList.remove('flipped');
               currentPlayer = currentPlayer === 1 ? 2 : 1;
               updateScoreboard();
-              message.textContent = `Player ${currentPlayer}'s turn.`;
+              
+              if (gameMode === 'ai') {
+                if (currentPlayer === 2) {
+                  message.textContent = 'AI is thinking...';
+                  setTimeout(() => aiTurn(), 1000);
+                } else {
+                  message.textContent = 'Your turn. Find a match!';
+                }
+              } else {
+                message.textContent = `Player ${currentPlayer}'s turn.`;
+              }
+              
               flipped = [];
               lockBoard = false;
             }, 600);
           }
         }
       }
+
+      function revealCard(index) {
+        const card = board.children[index];
+        card.textContent = card.dataset.emoji;
+        card.classList.add('flipped');
+        flipped.push(index);
+        
+        // AI learns this card position
+        if (gameMode === 'ai') {
+          aiMemory[index] = card.dataset.emoji;
+        }
+      }
+
+      function aiTurn() {
+        if (gameState !== 'playing' || lockBoard) return;
+
+        lockBoard = true;
+        let firstIndex, secondIndex;
+
+        // Try to find a match from memory
+        const knownCards = Object.entries(aiMemory);
+        if (knownCards.length >= 2) {
+          // Look for a matching pair
+          for (let i = 0; i < knownCards.length - 1; i++) {
+            for (let j = i + 1; j < knownCards.length; j++) {
+              if (knownCards[i][1] === knownCards[j][1] && 
+                  !matched.includes(parseInt(knownCards[i][0])) &&
+                  !matched.includes(parseInt(knownCards[j][0]))) {
+                firstIndex = parseInt(knownCards[i][0]);
+                secondIndex = parseInt(knownCards[j][0]);
+                break;
+              }
+            }
+            if (firstIndex !== undefined) break;
+          }
+        }
+
+        // If no match found, pick random unrevealed cards
+        if (firstIndex === undefined) {
+          const available = [];
+          for (let i = 0; i < shuffled.length; i++) {
+            if (!matched.includes(i)) {
+              available.push(i);
+            }
+          }
+          if (available.length >= 2) {
+            firstIndex = available[Math.floor(Math.random() * available.length)];
+            available.splice(available.indexOf(firstIndex), 1);
+            secondIndex = available[Math.floor(Math.random() * available.length)];
+          }
+        }
+
+        // Reveal the cards with delay for effect
+        setTimeout(() => {
+          revealCard(firstIndex);
+          message.textContent = 'AI is choosing...';
+        }, 300);
+
+        setTimeout(() => {
+          revealCard(secondIndex);
+          
+          const firstCard = board.children[firstIndex];
+          const secondCard = board.children[secondIndex];
+
+          if (firstCard.dataset.emoji === secondCard.dataset.emoji) {
+            // Match found
+            matched.push(firstIndex, secondIndex);
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            scores[2] += 1;
+            updateScoreboard();
+            message.textContent = '🎯 AI found a match!';
+            flipped = [];
+            lockBoard = false;
+
+            // Check for game over
+            if (matched.length === shuffled.length) {
+              endGame();
+            } else {
+              // AI plays again
+              setTimeout(() => aiTurn(), 1000);
+            }
+          } else {
+            // No match
+            setTimeout(() => {
+              firstCard.textContent = '?';
+              secondCard.textContent = '?';
+              firstCard.classList.remove('flipped');
+              secondCard.classList.remove('flipped');
+              currentPlayer = 1;
+              updateScoreboard();
+              message.textContent = 'Your turn. Find a match!';
+              flipped = [];
+              lockBoard = false;
+            }, 600);
+          }
+        }, 800);
+      }
+
+      function endGame() {
+        gameState = 'over';
+        let winner;
+        if (scores[1] > scores[2]) {
+          winner = gameMode === 'ai' ? '🎉 You Win!' : '🎉 Player 1 Wins!';
+          winnerText.textContent = gameMode === 'ai' 
+            ? `You finished with ${scores[1]} pairs. Great job!`
+            : `Player 1 finished with ${scores[1]} pairs.`;
+        } else if (scores[2] > scores[1]) {
+          winner = gameMode === 'ai' ? '🤖 AI Wins!' : '🎉 Player 2 Wins!';
+          winnerText.textContent = gameMode === 'ai'
+            ? `AI finished with ${scores[2]} pairs. Nice try!`
+            : `Player 2 finished with ${scores[2]} pairs.`;
+        } else {
+          winner = '🤝 It\'s a Draw!';
+          winnerText.textContent = 'Both finished with the same score.';
+        }
+        winnerTitle.textContent = winner;
+        setTimeout(() => winnerOverlay.classList.add('show'), 300);
+        message.textContent = winner;
+      }
+
+      // Mode switching
+      mode2playerBtn.addEventListener('click', () => {
+        gameMode = '2player';
+        mode2playerBtn.classList.add('active');
+        modeAIBtn.classList.remove('active');
+        buildBoard();
+      });
+
+      modeAIBtn.addEventListener('click', () => {
+        gameMode = 'ai';
+        modeAIBtn.classList.add('active');
+        mode2playerBtn.classList.remove('active');
+        buildBoard();
+      });
 
       // Help modal functions
       function openHelpModal() {
